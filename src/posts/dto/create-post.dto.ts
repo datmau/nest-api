@@ -20,4 +20,9 @@ export class CreatePostDto {
     @IsString()
     @IsOptional()
     authorId?: string;
+
+    @ApiProperty({ required: false })
+    @IsString({ each: true })
+    @IsOptional()
+    tagIds?: string[];
 }

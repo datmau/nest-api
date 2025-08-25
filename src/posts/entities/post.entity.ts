@@ -1,5 +1,6 @@
+import { TagEntity } from "src/tags/entities/tag.entity";
 import { UserEntity } from "src/users/entities/user.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('posts')
 export class PostEntity {
@@ -23,4 +24,9 @@ export class PostEntity {
 
   @ManyToOne(() => UserEntity, (user) => user.posts)
   author: UserEntity;
+
+
+  @ManyToMany(() => TagEntity, (tag) => tag.posts, { cascade: true })
+  @JoinTable()
+  tags: TagEntity[];
 }

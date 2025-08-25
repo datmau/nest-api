@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { ProfileEntity } from 'src/profile/entities/profile.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -17,8 +18,10 @@ export class UsersService {
   ) { }
 
   async create(createUserDto: CreateUserDto) {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
     const profile = await this.profileRepository.create({});
-    const user = await this.usersRepository.create({ ...createUserDto, profile });
+    const user = await this.usersRepository.create({ ...createUserDto, profile, password: hashedPassword });
     return this.usersRepository.save(user);
   }
 
@@ -34,6 +37,11 @@ export class UsersService {
 
   async findOneWithProfile(id: string) {
     const user = await this.usersRepository.findOne({ where: { id }, relations: { profile: true }, select: { profile: { id: true, username: true } } });
+    return user;
+  }
+
+   async findByEmail(email: string) {
+    const user = await this.usersRepository.findOneBy({ email });
     return user;
   }
 

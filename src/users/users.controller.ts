@@ -1,7 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/roles.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -24,6 +27,9 @@ export class UsersController {
   }
 
   @Get(':id/profile')
+  //@UseGuards(JwtAuthGuard)
+  @Roles('ADMIN', 'USER')
+  @UseGuards(RolesGuard)
   findProfile(@Param('id') id: string) {
     return this.usersService.findOneWithProfile(id);
   }
