@@ -56,6 +56,18 @@ export class UsersService {
     return { message: `User with ID ${id} updated successfully` };
   }
 
+  async updateAvatar(id: string, fileUrl: string) {
+
+    const staticUrl = '/uploads/avatars/'
+    const user = await this.usersRepository.findOne({ where: { id: id }, relations: { profile: true } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    await this.profileRepository.update(user.profile.id, { avatarUrl: `${staticUrl}${fileUrl}` });
+    return { message: `User with ID ${id} updated successfully` };
+  }
+
   async remove(id: string) {
     const user = await this.usersRepository.findOne({ where: { id: id } });
     if (!user) {

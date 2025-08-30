@@ -1,14 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RolesGuard } from 'src/auth/roles.guard';
-import { Roles } from 'src/auth/roles.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from 'src/config/multer.config';
+import { User } from 'src/auth/user.decorator';
+import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { UserEntity } from './entities/user.entity';
+import { JWTUserDto } from './dto/jwt-user.dto';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
@@ -28,10 +32,43 @@ export class UsersController {
 
   @Get(':id/profile')
   //@UseGuards(JwtAuthGuard)
-  @Roles('ADMIN', 'USER')
-  @UseGuards(RolesGuard)
+  //@Roles('ADMIN', 'USER')
+  //@UseGuards(RolesGuard)
   findProfile(@Param('id') id: string) {
     return this.usersService.findOneWithProfile(id);
+  }
+
+  @Post('upload-avatar')
+  @UseGuards(JwtAuthGuard)
+  @ApiConsumes('multipart/form-data')
+  @ApiBearerAuth('JWT-auth')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        imagen: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('imagen', multerOptions))
+  async uploadAvatar(
+    @UploadedFile() file: Express.Multer.File,
+    @User('user') user: JWTUserDto,
+  ) {
+    if (!file) {
+      throw new NotFoundException('File not found');
+    }
+
+    await this.usersService.updateAvatar(user.userId, file.filename);
+
+    return {
+      message: 'File uploaded successfully',
+      filename: file.filename,
+      user,
+    };
   }
 
   @Patch(':id')
