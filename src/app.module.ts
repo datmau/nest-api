@@ -11,6 +11,8 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { TagsModule } from './tags/tags.module';
 import { TagEntity } from './tags/entities/tag.entity';
+import { ChatModule } from './chat/chat.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -30,7 +32,9 @@ import { TagEntity } from './tags/entities/tag.entity';
     ProfileModule,
     PostsModule,
     AuthModule,
-    TagsModule
+    TagsModule,
+    ChatModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {

@@ -9,10 +9,14 @@ import { User } from 'src/auth/user.decorator';
 import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
 import { JWTUserDto } from './dto/jwt-user.dto';
+import { AppService } from 'src/config/s3.config';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly appService: AppService
+  ) { }
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
@@ -53,7 +57,7 @@ export class UsersController {
       },
     },
   })
-  @UseInterceptors(FileInterceptor('imagen', multerOptions))
+  @UseInterceptors(FileInterceptor('imagen'))
   async uploadAvatar(
     @UploadedFile() file: Express.Multer.File,
     @User('user') user: JWTUserDto,
@@ -61,6 +65,8 @@ export class UsersController {
     if (!file) {
       throw new NotFoundException('File not found');
     }
+
+    await this.appService.uploadFile(file);
 
     await this.usersService.updateAvatar(user.userId, file.filename);
 

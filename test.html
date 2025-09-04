@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Cliente Socket.IO</title>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+<h1>Cliente</h1>
+<input id="room" placeholder="sala (p. ej. product:42)" />
+<button onclick="join()">Unirme</button>
+<input id="msg" placeholder="mensaje" />
+<button onclick="send()">Enviar</button>
+<pre id="log"></pre>
+
+
+<script>
+const socket = io('http://localhost:3001/chat', {
+// auth: { token: 'JWT_OPCIONAL' },
+transports: ['websocket'],
+});
+
+
+const log = (m) => (document.getElementById('log').textContent += `\n${m}`);
+
+
+socket.on('connect', () => log('Conectado: ' + socket.id));
+socket.on('connected', (d) => log('Bienvenida usuario: ' + JSON.stringify(d)));
+socket.on('joined', (m) => log(m));
+socket.on('message', (m) => log('Mensaje: ' + JSON.stringify(m)));
+
+
+function join() {
+const room = document.getElementById('room').value;
+socket.emit('joinRoom', room);
+}
+function send() {
+const room = document.getElementById('room').value;
+const msg = document.getElementById('msg').value;
+if (room) socket.emit('roomMessage', { room, message: msg });
+else socket.emit('message', msg);
+}
+</script>
+</body>
+</html>
